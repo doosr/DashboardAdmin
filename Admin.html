@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Résidence Haroun</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .admin-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            border: 3px solid transparent;
+        }
+
+        .table-card.occupied {
+            border-color: #e74c3c;
+            background: linear-gradient(135deg, #fff5f5, #fff);
+        }
+
+        .table-card.available {
+            border-color: #27ae60;
+            background: linear-gradient(135deg, #f0fff4, #fff);
+        }
+
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .table-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .table-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-available {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .status-occupied {
+            background: #ffeaea;
+            color: #e74c3c;
+        }
+
+        .table-orders {
+            margin: 1rem 0;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .item-quantity {
+            background: #3498db;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+
+        .item-price {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .table-total {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            flex: 1;
+        }
+
+        .btn-qr {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-clear {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 120px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .notifications {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .notification-item.new {
+            background: linear-gradient(135deg, #e8f5e8, #f0fff4);
+            border-left-color: #27ae60;
+            animation: pulse 2s infinite;
+        }
+
+        .notification-time {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .notification-message {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn-control {
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-refresh {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .btn-clear-all {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-export {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        /* Modal QR */
+        .qr-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .qr-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+
+        .close-qr {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #e74c3c;
+        }
+
+        #qr-code-container {
+            margin: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .qr-table-info {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .btn-download {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .stats-bar {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            
+            .tables-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Status indicators */
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+            animation: blink 2s infinite;
+        }
+
+        .status-indicator.available {
+            background: #27ae60;
+        }
+
+        .status-indicator.occupied {
+            background: #e74c3c;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.5; }
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 3000;
+            max-width: 350px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="header-content">
+            <div class="logo">
+                🏠 Dashboard Admin - Résidence Haroun
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalTables">40</div>
+                    <div class="stat-label">Tables Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="occupiedTables">0</div>
+                    <div class="stat-label">Tables Occupées</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalOrders">0</div>
+                    <div class="stat-label">Commandes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalRevenue">0</div>
+                    <div class="stat-label">CA (DT)</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Tables Grid -->
+        <div class="tables-section">
+            <div class="tables-grid" id="tablesGrid">
+                <!-- Tables will be generated here -->
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Notifications -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">
+                    🔔 Notifications
+                    <span id="notificationCount" style="background: #e74c3c; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">0</span>
+                </div>
+                <div class="notifications" id="notificationsList">
+                    <div style="text-align: center; color: #666; padding: 2rem;">
+                        Aucune nouvelle notification
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">⚙️ Contrôles</div>
+                <div class="controls">
+                    <button class="btn-control btn-refresh" onclick="refreshData()">
+                        🔄 Actualiser
+                    </button>
+                    <button class="btn-control btn-clear-all" onclick="clearAllTables()">
+                        🗑️ Vider Toutes
+                    </button>
+                    <button class="btn-control btn-export" onclick="exportData()">
+                        📊 Exporter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div class="qr-modal" id="qrModal">
+        <div class="qr-content">
+            <button class="close-qr" onclick="closeQRModal()">×</button>
+            <div class="qr-table-info" id="qrTableInfo">Table #</div>
+            <div id="qr-code-container"></div>
+            <button class="btn-download" onclick="downloadQR()">Télécharger QR Code</button>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script type="module">
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBe6juIZqptZs--8vRqSy8Y36jN_b_Vr10",
+            authDomain: "moniteur-d7a49.firebaseapp.com",
+            projectId: "moniteur-d7a49",
+            storageBucket: "moniteur-d7a49.appspot.com",
+            messagingSenderId: "127199244043",
+            appId: "1:127199244043:web:1d2f53b75b800f3e813c0e",
+            measurementId: "G-GT0E69TGPX"
+        };
+
+        // Variables globales
+        let app, db;
+        let firebaseReady = false;
+        let tablesData = {};
+        let notifications = [];
+        let currentQRTable = null;
+        let orderListener = null;
+
+        // Initialisation Firebase
+        async function initFirebase() {
+            try {
+                const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js');
+                const { getFirestore, onSnapshot, collection, query, orderBy, where } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                firebaseReady = true;
+                
+                console.log("🔥 Firebase initialisé avec succès!");
+                
+                // Écouter les commandes en temps réel
+                const ordersQuery = query(
+                    collection(db, 'orders'),
+                    orderBy('timestamp', 'desc')
+                );
+                
+                orderListener = onSnapshot(ordersQuery, (snapshot) => {
+                    console.log("📊 Mise à jour des commandes reçue");
+                    processOrdersUpdate(snapshot);
+                });
+                
+                showToast("Firebase connecté - Données en temps réel activées", 'success');
+                return true;
+                
+            } catch (error) {
+                console.error("❌ Erreur Firebase:", error);
+                firebaseReady = false;
+                showToast("Mode démo activé - Firebase non disponible", 'error');
+                loadDemoData();
+                return false;
+            }
+        }
+
+        // Traiter la mise à jour des commandes
+        function processOrdersUpdate(snapshot) {
+            const newTablesData = {};
+            
+            // Initialiser toutes les tables
+            for (let i = 1; i <= 40; i++) {
+                newTablesData[i] = {
+                    orders: [],
+                    total: 0,
+                    status: 'available'
+                };
+            }
+            
+            // Traiter les commandes
+            snapshot.forEach(doc => {
+                const order = doc.data();
+                const tableId = order.table;
+                
+                if (tableId && tableId >= 1 && tableId <= 40) {
+                    if (!newTablesData[tableId].orders) {
+                        newTablesData[tableId].orders = [];
+                    }
+                    
+                    newTablesData[tableId].orders.push({
+                        id: doc.id,
+                        ...order,
+                        timestamp: order.timestamp?.toDate?.() || new Date(order.timestamp)
+                    });
+                    
+                    newTablesData[tableId].total += order.total || 0;
+                    newTablesData[tableId].status = 'occupied';
+                }
+            });
+            
+            // Détecter les nouvelles commandes pour les notifications
+            Object.keys(newTablesData).forEach(tableId => {
+                const oldOrders = tablesData[tableId]?.orders || [];
+                const newOrders = newTablesData[tableId].orders || [];
+                
+                if (newOrders.length > oldOrders.length) {
+                    const latestOrder = newOrders[0];
+                    addNotification(`Nouvelle commande - Table ${tableId}`, `${latestOrder.items?.length || 0} articles - ${(latestOrder.total / 1000).toFixed(3)} DT`);
+                }
+            });
+            
+            // Mettre à jour les données
+            tablesData = newTablesData;
+            updateDisplay();
+        }
+
+        // Charger les données de démonstration
+        function loadDemoData() {
+            try {
+                const demoOrders = JSON.parse(localStorage.getItem('demo_orders') || '[]');
+                const newTablesData = {};
+                
+                // Initialiser toutes les tables
+                for (let i = 1; i <= 40; i++) {
+                    newTablesData[i] = {
+                        orders: [],
+                        total: 0,
+                        status: 'available'
+                    };
+                }
+                
+                // Traiter les commandes de demo
+                demoOrders.forEach((order, index) => {
+                    const tableId = order.table;
+                    if (tableId && tableId >= 1 && tableId <= 40) {
+                        newTablesData[tableId].orders.push({
+                            id: `demo_${index}`,
+                            ...order,
+                            timestamp: new Date(order.timestamp)
+                        });
+                        newTablesData[tableId].total += order.total || 0;
+                        newTablesData[tableId].status = 'occupied';
+                    }
+                });
+                
+                tablesData = newTablesData;
+                updateDisplay();
+                
+            } catch (error) {
+                console.error("Erreur chargement données demo:", error);
+            }
+        }
+
+        // Mettre à jour l'affichage
+        function updateDisplay() {
+            generateTablesGrid();
+            updateStats();
+        }
+
+        // Générer la grille des tables
+        function generateTablesGrid() {
+            const grid = document.getElementById('tablesGrid');
+            
+            let html = '';
+            for (let i = 1; i <= 40; i++) {
+                const table = tablesData[i] || { orders: [], total: 0, status: 'available' };
+                const isOccupied = table.status === 'occupied';
+                
+                html += `
+                    <div class="table-card ${isOccupied ? 'occupied' : 'available'} fade-in">
+                        <div class="table-header">
+                            <div class="table-number">
+                                <span class="status-indicator ${isOccupied ? 'occupied' : 'available'}"></span>
+                                Table ${i}
+                            </div>
+                            <div class="table-status ${isOccupied ? 'status-occupied' : 'status-available'}">
+                                ${isOccupied ? 'Occupée' : 'Libre'}
+                            </div>
+                        </div>
+                        
+                        ${isOccupied ? `
+                            <div class="table-orders">
+                                ${table.orders.slice(-5).reverse().map(order => 
+                                    order.items?.map(item => `
+                                        <div class="order-item">
+                                            <div style="display: flex; align-items: center;">
+                                                <span class="item-quantity">${item.quantity}</span>
+                                                <span class="item-name">${item.name}</span>
+                                            </div>
+                                            <span class="item-price">${(item.subtotal / 1000).toFixed(3)} DT</span>
+                                        </div>
+                                    `).join('') || ''
+                                ).join('')}
+                            </div>
+                            <div class="table-total">
+                                Total: ${(table.total / 1000).toFixed(3)} DT
+                            </div>
+                        ` : '<div style="text-align: center; color: #666; padding: 2rem;">Aucune commande</div>'}
+                        
+                        <div class="table-actions">
+                            <button class="btn btn-qr" onclick="showQRCode(${i})">
+                                📱 QR Code
+                            </button>
+                            ${isOccupied ? `
+                                <button class="btn btn-clear" onclick="clearTable(${i})">
+                                    🗑️ Vider
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            grid.innerHTML = html;
+        }
+
+        // Mettre à jour les statistiques
+        function updateStats() {
+            const occupiedCount = Object.values(tablesData).filter(t => t.status === 'occupied').length;
+            const totalOrders = Object.values(tablesData).reduce((sum, t) => sum + t.orders.length, 0);
+            const totalRevenue = Object.values(tablesData).reduce((sum, t) => sum + t.total, 0);
+            
+            document.getElementById('occupiedTables').textContent = occupiedCount;
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('totalRevenue').textContent = (totalRevenue / 1000).toFixed(3);
+        }
+
+        // Afficher le QR Code
+// Afficher le QR Code
+window.showQRCode = function(tableId) {
+    currentQRTable = tableId;
+    const modal = document.getElementById('qrModal');
+    const tableInfo = document.getElementById('qrTableInfo');
+    const container = document.getElementById('qr-code-container');
+
+    // Mettre à jour l'info table
+    tableInfo.textContent = `Table ${tableId}`;
+    container.innerHTML = '<div style="padding: 2rem;">Génération du QR Code...</div>';
+    
+    modal.style.display = 'flex';
+
+    // URL à encoder dans le QR Code
+    const tableUrl = `https://doosr.github.io/mon-site/?table=${tableId}`;
+
+    // Générer le QR Code
+    QRCode.toCanvas(tableUrl, {
+        width: 256,
+        height: 256,
+        color: {
+            dark: '#2c3e50',
+            light: '#ffffff'
+        }
+    }, (error, canvas) => {
+        if (error) {
+            container.innerHTML = '<div style="color: #e74c3c;">Erreur génération QR Code</div>';
+            return;
+        }
+
+        container.innerHTML = '';
+        container.appendChild(canvas);
+
+        // Ajouter l'URL sous le QR code
+        const urlDiv = document.createElement('div');
+        urlDiv.style.cssText = 'font-size: 0.9rem; color: #666; margin-top: 1rem; word-break: break-all;';
+        urlDiv.textContent = tableUrl;
+        container.appendChild(urlDiv);
+    });
+};
+
+// Fermer le modal QR
+window.closeQRModal = function() {
+    document.getElementById('qrModal').style.display = 'none';
+    currentQRTable = null;
+};
+
+// Télécharger le QR Code
+window.downloadQR = function() {
+    if (!currentQRTable) return;
+
+    const canvas = document.querySelector('#qr-code-container canvas');
+    if (canvas) {
+        const link = document.createElement('a');
+        link.download = `table-${currentQRTable}-qr.png`;
+        link.href = canvas.toDataURL();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showToast(`QR Code Table ${currentQRTable} téléchargé!`, 'success');
+    }
+};
+
+        // Vider une table
+      window.clearTable = async function(tableId) {
+    if (!confirm(`Êtes-vous sûr de vouloir vider la table ${tableId} ?`)) {
+        return;
+    }
+    
+    try {
+        if (firebaseReady && db) {
+            // Importer la fonction nécessaire de Firebase
+            const { deleteDoc, doc, collection, getDocs, query, where } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+            
+            // Récupérer toutes les commandes de la table
+            const ordersRef = collection(db, 'orders');
+            const q = query(ordersRef, where('table', '==', parseInt(tableId)));
+            const querySnapshot = await getDocs(q);
+            
+            // Supprimer chaque commande
+            const deletePromises = [];
+            querySnapshot.forEach((orderDoc) => {
+                deletePromises.push(deleteDoc(doc(db, 'orders', orderDoc.id)));
+            });
+            
+            await Promise.all(deletePromises);
+            showToast(`Table ${tableId} vidée avec succès!`, 'success');
+        } else {
+            // Mode démo - supprimer du localStorage
+            const demoOrders = JSON.parse(localStorage.getItem('demo_orders') || '[]');
+            const filteredOrders = demoOrders.filter(order => order.table !== tableId);
+            localStorage.setItem('demo_orders', JSON.stringify(filteredOrders));
+            
+            loadDemoData();
+            showToast(`Table ${tableId} vidée! (mode démo)`, 'success');
+        }
+        
+        addNotification(`Table ${tableId} vidée`, 'Administration');
+        
+    } catch (error) {
+        console.error('Erreur:', error);
+        showToast('Erreur lors du vidage de la table', 'error');
+    }
+};
+        // Vider toutes les tables
+      window.clearAllTables = async function() {
+    if (!confirm('Êtes-vous sûr de vouloir vider TOUTES les tables ?')) {
+        return;
+    }
+    
+    try {
+        if (firebaseReady && db) {
+            // Importer les fonctions nécessaires de Firebase
+            const { deleteDoc, doc, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+            
+            // Récupérer toutes les commandes
+            const querySnapshot = await getDocs(collection(db, 'orders'));
+            
+            // Supprimer chaque commande
+            const deletePromises = [];
+            querySnapshot.forEach((orderDoc) => {
+                deletePromises.push(deleteDoc(doc(db, 'orders', orderDoc.id)));
+            });
+            
+            await Promise.all(deletePromises);
+            showToast('Toutes les tables vidées avec succès!', 'success');
+        } else {
+            localStorage.removeItem('demo_orders');
+            loadDemoData();
+            showToast('Toutes les tables vidées! (mode démo)', 'success');
+        }
+        
+        addNotification('Toutes les tables vidées', 'Administration');
+        
+    } catch (error) {
+        console.error('Erreur:', error);
+        showToast('Erreur lors du vidage', 'error');
+    }
+};
+// Actualiser les données
+        window.refreshData = function() {
+            showToast('Actualisation...', 'success');
+            
+            if (firebaseReady) {
+                // Les données Firebase se mettent à jour automatiquement
+                showToast('Données actualisées!', 'success');
+            } else {
+                loadDemoData();
+                showToast('Données de démonstration rechargées!', 'success');
+            }
+            
+            // Actualiser l'affichage
+            updateDisplay();
+            
+            // Mettre à jour l'horodatage
+            const now = new Date();
+            addNotification('Données actualisées', `${now.toLocaleTimeString('fr-FR')}`);
+        };
+
+        // Exporter les données
+        window.exportData = function() {
+            try {
+                const exportData = {
+                    timestamp: new Date().toISOString(),
+                    tables: tablesData,
+                    summary: {
+                        totalTables: 40,
+                        occupiedTables: Object.values(tablesData).filter(t => t.status === 'occupied').length,
+                        totalOrders: Object.values(tablesData).reduce((sum, t) => sum + t.orders.length, 0),
+                        totalRevenue: Object.values(tablesData).reduce((sum, t) => sum + t.total, 0)
+                    }
+                };
+                
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                
+                const link = document.createElement('a');
+                link.download = `export-${new Date().toISOString().split('T')[0]}.json`;
+                link.href = URL.createObjectURL(dataBlob);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showToast('Données exportées avec succès!', 'success');
+                addNotification('Export effectué', 'Données sauvegardées');
+                
+            } catch (error) {
+                console.error('Erreur export:', error);
+                showToast('Erreur lors de l\'export', 'error');
+            }
+        };
+
+        // Ajouter une notification
+        function addNotification(title, message) {
+            const notification = {
+                id: Date.now(),
+                title,
+                message,
+                timestamp: new Date(),
+                read: false
+            };
+            
+            notifications.unshift(notification);
+            
+            // Limiter à 50 notifications
+            if (notifications.length > 50) {
+                notifications = notifications.slice(0, 50);
+            }
+            
+            updateNotifications();
+        }
+
+        // Mettre à jour l'affichage des notifications
+        function updateNotifications() {
+            const container = document.getElementById('notificationsList');
+            const countElement = document.getElementById('notificationCount');
+            
+            const unreadCount = notifications.filter(n => !n.read).length;
+            countElement.textContent = unreadCount;
+            
+            if (notifications.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 2rem;">
+                        Aucune nouvelle notification
+                    </div>
+                `;
+                return;
+            }
+            
+            const html = notifications.slice(0, 10).map(notification => `
+                <div class="notification-item ${!notification.read ? 'new' : ''}" onclick="markAsRead('${notification.id}')">
+                    <div class="notification-time">
+                        ${notification.timestamp.toLocaleTimeString('fr-FR')}
+                    </div>
+                    <div class="notification-message">
+                        <strong>${notification.title}</strong><br>
+                        ${notification.message}
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // Marquer une notification comme lue
+        window.markAsRead = function(notificationId) {
+            const notification = notifications.find(n => n.id == notificationId);
+            if (notification) {
+                notification.read = true;
+                updateNotifications();
+            }
+        };
+
+        // Fonction toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Fermer le modal QR en cliquant à l'extérieur
+        document.getElementById('qrModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeQRModal();
+            }
+        });
+
+        // Initialisation au chargement de la page
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log("🚀 Initialisation du Dashboard Admin...");
+            
+            // Ajouter notification de bienvenue
+            addNotification('Dashboard Admin', 'Système initialisé avec succès');
+            
+            // Initialiser Firebase
+            const firebaseInitialized = await initFirebase();
+            
+            if (!firebaseInitialized) {
+                // Charger les données de démonstration si Firebase n'est pas disponible
+                loadDemoData();
+            }
+            
+            // Mise à jour initiale de l'affichage
+            updateDisplay();
+            
+            console.log("✅ Dashboard Admin prêt!");
+        });
+
+        // Gérer la fermeture de la page
+        window.addEventListener('beforeunload', function() {
+            if (orderListener) {
+                orderListener();
+            }
+        });
+
+    </script>
+</body>
+</html>
