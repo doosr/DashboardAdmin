@@ -2,7 +2,6 @@
 
 Tableau de bord administratif pour la gestion des commandes et des tables dans la Résidence Haroun.
 
-![Dashboard Preview](https://via.placeholder.com/800x500?text=Dashboard+Preview)
 
 ## Fonctionnalités
 
